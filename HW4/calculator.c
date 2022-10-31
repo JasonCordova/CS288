@@ -2,16 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct Record {
-	
-	char *studentID;
-	int grade;
-
-};
-
 struct Node {
 
-	struct Record record;
+	char *studentID;
+    int grade;
 	struct Node *next;
 
 };
@@ -19,7 +13,6 @@ struct Node {
 struct List {
 
 	struct Node *head;
-	struct Node *tail;
 
 };
 
@@ -27,7 +20,6 @@ struct List SLL_new(){
 
 	struct List temp;
 	temp.head = NULL;
-	temp.tail = NULL;
 	return temp;
 
 }
@@ -46,64 +38,90 @@ int SLL_length(struct List *list){
 void SLL_push(struct List *list, char *key, int value){
 
 	struct Node *node = malloc(sizeof(struct Node));
-	struct Record record;
-	record.studentID = key;
-	record.grade = value;
-	node->record = record;
+    node->grade = value;
+    node->studentID = key;
 	node->next = list->head;
-
-	if (SLL_empty(list)) list->tail = node;	
 	list->head = node;
 
 }
-/*
-void SLL_pop(struct List *list, char *key, int *value){
-
-
-}
-
-void SLL_clear(struct List *list){
-	
-	while (!SLL_empty(list)) {SLL_pop(list);}
-
-}*/
 
 void SLL_insert(struct List *list, char *key, int value){
 
-	if (SLL_empty(list)) SLL_push(list, key, value);
-	else {
-		struct Node *node = malloc(sizeof(struct Node));
-		struct Record record;
-		record.studentID = key;
-		record.grade = value;
-		node->record = record;
-		node->next = NULL;
+    char *studentID = (char*)malloc(sizeof(char) * 256);
+    strcpy(studentID, key);
 
-		list->tail->next = node;
-		list->tail = node;
+    if (SLL_empty(list) || (list->head != NULL && strcmp(list->head->studentID, studentID) >= 0)){
+        SLL_push(list, studentID, value);
+	} else {
+        struct Node *current = list->head;
+        struct Node *temp;
+		struct Node *node = malloc(sizeof(struct Node));
+
+        while (current != NULL && strcmp(current->studentID, studentID) <= 0){
+            temp = current;
+            current = current->next;
+        }
+
+        node->grade = value;
+        node->studentID = studentID;
+		node->next = current;
+        temp->next = node;
+
 	}
 	
 
 }
 
-void SLL_print(struct List *list){
+void SLL_pop(struct List *list, char *key, int *value){
 
-	struct Node *curr = list->head;
-	while (curr != NULL){
-		printf("%s: %d | ", curr->record.studentID, curr->record.grade);
-		curr = curr->next;	
-	}
+    struct Node *head = list->head;
+    int grade;
+    char *studentID = (char*)malloc(sizeof(char) * 256);
+
+    if (head == NULL) return;
+    strcpy(studentID, head->studentID);
+    grade = head->grade;
+
+    list->head = head->next;
+
+    if (value != NULL) *value = grade;
+    if (key != NULL) strcpy(key, studentID);
+
+    free(head);
+    free(studentID);
+}
+
+void SLL_clear(struct List *list){
+
+    while (!SLL_empty(list)) {
+        SLL_pop(list, NULL, NULL);
+    }
 
 }
+
+/*
+void SLL_print(struct List *list){
+
+    struct Node *current = list->head;
+    while (current != NULL){
+        printf("%s (%d)\n", current->studentID, current->grade);
+        current = current->next;
+    }
+
+}*/
 
 
 int main(int argc, char **argv){
 
-	char line[128];
+	char line[256];
+    char *buffer = (char*)malloc(sizeof(char) * 256);
 	FILE *file;
 	int i = 0;
+    int grade;
+    char *pastStudent = (char*)malloc(sizeof(char) * 256);
+    double totalGrade = 0.0;
 	struct List list = SLL_new();
-	
+
 	if (argc != 5) exit(1); 
 
 	for (i = 1; i < 4; i++){
@@ -111,19 +129,42 @@ int main(int argc, char **argv){
 		file = fopen(argv[i], "r");
 		if (file == NULL) break;
 
-		printf("Opened %s\n", argv[i]);
 		while (fgets(line, 128, file)){
 
-			char *studentID = strtok(line, ",");
-			int grade = atoi(strtok(NULL, ","));
-			SLL_insert(&list, studentID, grade);
+			strcpy(buffer, strtok(line, ","));
+			grade = atoi(strtok(NULL, ","));
+			SLL_insert(&list, buffer, grade);
 	
 		}
 
 	}
 
-	SLL_print(&list);
-	printf("%d", strcmp("appla", "applb"));
+    file = fopen(argv[4], "w");
+    if (file == NULL) exit(1);
+
+    i = 0;
+    while (!SLL_empty(&list)){
+
+        SLL_pop(&list, buffer, &grade);
+        if (strcmp(pastStudent, "") == 0) { /* When its first */
+            strcpy(pastStudent, buffer);
+            totalGrade = grade;
+
+        } else if (strcmp(pastStudent, buffer) != 0){
+            fprintf(file, "%s,%d\n", pastStudent, (int)(totalGrade/3 + .5));
+            totalGrade = grade;
+            strcpy(pastStudent, buffer);
+
+        } else {
+            totalGrade += grade;
+        }
+
+    }
+
+    if (strcmp(pastStudent, "") != 0) fprintf(file, "%s,%d\n", pastStudent, (int)(totalGrade/3 + .5));
+    free(pastStudent);
+    free(buffer);
+    fclose(file);
 
 	return 0;
 
