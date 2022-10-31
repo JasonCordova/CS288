@@ -99,18 +99,6 @@ void SLL_clear(struct List *list){
 
 }
 
-/*
-void SLL_print(struct List *list){
-
-    struct Node *current = list->head;
-    while (current != NULL){
-        printf("%s (%d)\n", current->studentID, current->grade);
-        current = current->next;
-    }
-
-}*/
-
-
 int main(int argc, char **argv){
 
 	char line[256];
@@ -129,13 +117,15 @@ int main(int argc, char **argv){
 		file = fopen(argv[i], "r");
 		if (file == NULL) break;
 
-		while (fgets(line, 128, file)){
+		while (fgets(line, 256, file)){
 
 			strcpy(buffer, strtok(line, ","));
 			grade = atoi(strtok(NULL, ","));
 			SLL_insert(&list, buffer, grade);
 	
 		}
+
+        fclose(file);
 
 	}
 
