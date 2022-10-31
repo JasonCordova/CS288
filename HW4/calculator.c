@@ -4,8 +4,8 @@
 
 struct Node {
 
-	char *studentID;
-    int grade;
+	char *key;
+    int value;
 	struct Node *next;
 
 };
@@ -38,8 +38,8 @@ int SLL_length(struct List *list){
 void SLL_push(struct List *list, char *key, int value){
 
 	struct Node *node = malloc(sizeof(struct Node));
-    node->grade = value;
-    node->studentID = key;
+    node->value = value;
+    node->key = key;
 	node->next = list->head;
 	list->head = node;
 
@@ -50,20 +50,20 @@ void SLL_insert(struct List *list, char *key, int value){
     char *studentID = (char*)malloc(sizeof(char) * 256);
     strcpy(studentID, key);
 
-    if (SLL_empty(list) || (list->head != NULL && strcmp(list->head->studentID, studentID) >= 0)){
+    if (SLL_empty(list) || (list->head != NULL && strcmp(list->head->key, studentID) >= 0)){
         SLL_push(list, studentID, value);
 	} else {
         struct Node *current = list->head;
         struct Node *temp;
 		struct Node *node = malloc(sizeof(struct Node));
 
-        while (current != NULL && strcmp(current->studentID, studentID) <= 0){
+        while (current != NULL && strcmp(current->key, studentID) <= 0){
             temp = current;
             current = current->next;
         }
 
-        node->grade = value;
-        node->studentID = studentID;
+        node->value = value;
+        node->key = studentID;
 		node->next = current;
         temp->next = node;
 
@@ -79,8 +79,8 @@ void SLL_pop(struct List *list, char *key, int *value){
     char *studentID = (char*)malloc(sizeof(char) * 256);
 
     if (head == NULL) return;
-    strcpy(studentID, head->studentID);
-    grade = head->grade;
+    strcpy(studentID, head->key);
+    grade = head->value;
 
     list->head = head->next;
 
